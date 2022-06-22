@@ -37,6 +37,9 @@ class _RecipientListState extends State<RecipientList> {
         ..text = element['body'];
       try {
         final sendReport = send(message, smtpServer);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email sending...')),
+        );
       } on MailerException catch (e) {
         print(e);
         for (var p in e.problems) {
@@ -64,9 +67,12 @@ class _RecipientListState extends State<RecipientList> {
               icon: const Icon(Icons.logout_outlined),
               onPressed: () {
                 FirebaseAuth.instance.signOut();
+                List messages =
+                    Provider.of<StorageProvider>(context, listen: false).mails;
+                messages.clear();
+                context.read<StorageProvider>().updateMail(messages);
                 Provider.of<UserProvider>(context, listen: false).setUser =
                     UserModel("", "");
-                context.read<StorageProvider>().updateMail([]);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('SignOut')),
                 );
