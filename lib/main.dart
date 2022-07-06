@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:test_firebase_desktop/models/zimbraUser.dart';
 import 'package:test_firebase_desktop/pages/new_recipient.dart';
 import 'package:test_firebase_desktop/pages/recipient_list.dart';
 import 'package:test_firebase_desktop/provider/storage.dart';
 import 'package:test_firebase_desktop/provider/userProvider.dart';
+import 'package:test_firebase_desktop/provider/zimbraUserProvider.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:test_firebase_desktop/pages/login.dart';
@@ -27,6 +29,9 @@ class MyApp extends StatelessWidget {
         }),
         ChangeNotifierProvider(create: (BuildContext context) {
           return UserProvider(UserModel("", ""));
+        }),
+        ChangeNotifierProvider(create: (BuildContext context) {
+          return zimbraUserProvider(zimbraUserModel("", "", ""));
         }),
       ],
       child: MaterialApp(

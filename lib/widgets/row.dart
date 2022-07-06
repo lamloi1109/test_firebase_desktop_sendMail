@@ -1,8 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 
 class InputRow extends StatefulWidget {
   InputRow({
@@ -40,9 +38,9 @@ class _InputRowState extends State<InputRow> {
   List<PlatformFile> attachments = [];
   List attachmentPath = [];
   List mails;
-  List<String> links = [];
-  List<String> toEmails = [];
-  List<String> ccEmails = [];
+  List links = [];
+  List toEmails = [];
+  List ccEmails = [];
   late Map<String, dynamic> mail = {
     'toEmails': mail['toEmails'],
     'ccEmails': mail['ccEmails'],
@@ -52,7 +50,6 @@ class _InputRowState extends State<InputRow> {
     'content': mail['content'],
     'signature': mail['signature'],
     'attachments': mail['attachments'],
-    'attachmentPath': mail['attachmentPath'],
   };
 
   Function removeRecipient;
@@ -77,6 +74,8 @@ class _InputRowState extends State<InputRow> {
   void initState() {
     super.initState();
     setState(() {
+      toEmails = mail['toEmails'];
+      ccEmails = mail['ccEmails'];
       _name.text = mail['name'];
       _subject.text = mail['subject'];
       _salutation.text = mail['salutation'];
@@ -137,6 +136,19 @@ class _InputRowState extends State<InputRow> {
       }
     }
 
+    checkForCorrectEmailFormat(arr) {
+      List tempArr = [...arr];
+      for (var i = 0; i < tempArr.length; i++) {
+        bool correctFormat = RegExp(
+                r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+            .hasMatch(tempArr[i]);
+        if (!correctFormat) {
+          tempArr.removeAt(i);
+        }
+      }
+      return tempArr;
+    }
+
     checkForNewLine(value) {
       if (mails.length > 1 &&
           !mails.every((element) =>
@@ -184,30 +196,58 @@ class _InputRowState extends State<InputRow> {
         'salutation': _salutation.text,
         'content': _body.text,
         'signature': _signature.text,
-        'attachments': attachments,
-        'attachmentPath': attachmentPath,
+        'attachments': attachmentPath,
       };
 
       updateRecipient(newUpdatedRecipient, index);
     }
 
-    Future checkForPath(value) async {
-      try {
-        final response = await http.get(
-          Uri.parse('http://localhost:5000/api/check-path/$value'),
-          headers: {
-            HttpHeaders.contentTypeHeader: 'application/json',
+    addDataToMail(arr) {
+      if (arr.length != 7) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Invalid format detected'),
+              content: const Text(
+                  'Please check the format of your copied content from excel file'),
+              actions: [
+                ElevatedButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    return Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
           },
         );
-
-        if (response.statusCode == 200) {
-          print('Found!!!');
-        } else {
-          print('Not Found');
-        }
-      } catch (err) {
-        print(err);
+        return;
       }
+
+      Map<String, dynamic> newMail = {
+        'toEmails':
+            arr[5] != null ? checkForCorrectEmailFormat(arr[5].split(';')) : [],
+        'ccEmails':
+            arr[6] != null ? checkForCorrectEmailFormat(arr[6].split(';')) : [],
+        'name': arr[0],
+        'subject': arr[1],
+        'salutation': arr[2],
+        'content': arr[3],
+        'signature': arr[4],
+        'attachments': [],
+      };
+      setState(() {
+        toEmails = newMail['toEmails'];
+        ccEmails = newMail['ccEmails'];
+        _name.text = newMail['name'];
+        _subject.text = newMail['subject'];
+        _salutation.text = newMail['salutation'];
+        _body.text = newMail['content'];
+        _signature.text = newMail['signature'];
+      });
+      updateRecipient(newMail, index);
+      checkForNewLine('');
     }
 
     return Row(
@@ -232,8 +272,6 @@ class _InputRowState extends State<InputRow> {
                           Expanded(
                             child: TextField(
                               onSubmitted: (value) {
-                                print("dsa");
-
                                 bool correctFormat = RegExp(
                                         r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
                                     .hasMatch(value);
@@ -249,8 +287,7 @@ class _InputRowState extends State<InputRow> {
                                     'salutation': _salutation.text,
                                     'content': _body.text,
                                     'signature': _signature.text,
-                                    'attachments': attachments,
-                                    'attachmentPath': attachmentPath,
+                                    'attachments': attachmentPath,
                                   };
                                   updateRecipient(newUpdatedRecipient, index);
                                   checkForNewLine('');
@@ -356,8 +393,7 @@ class _InputRowState extends State<InputRow> {
                                     'salutation': _salutation.text,
                                     'content': _body.text,
                                     'signature': _signature.text,
-                                    'attachments': attachments,
-                                    'attachmentPath': attachmentPath
+                                    'attachments': attachmentPath,
                                   };
                                   updateRecipient(newUpdatedRecipient, index);
                                   checkForNewLine('');
@@ -489,8 +525,7 @@ class _InputRowState extends State<InputRow> {
                                 'salutation': _salutation.text,
                                 'content': _body.text,
                                 'signature': _signature.text,
-                                'attachments': attachments,
-                                'attachmentPath': attachmentPath
+                                'attachments': attachmentPath,
                               };
                               updateRecipient(newUpdatedRecipient, index);
                             },
@@ -520,7 +555,6 @@ class _InputRowState extends State<InputRow> {
                                           onPressed: () {
                                             setState(() {
                                               attachments.removeAt(i);
-                                              attachmentPath.removeAt(i);
                                             });
                                           })
                                     ]),
@@ -564,7 +598,7 @@ class _InputRowState extends State<InputRow> {
                             width: 10,
                           ),
                           ElevatedButton(
-                            onPressed: () => checkForPath(_link.text),
+                            onPressed: () {},
                             child: const Text('Find'),
                           )
                         ],
@@ -606,14 +640,38 @@ class _InputRowState extends State<InputRow> {
               padding: const EdgeInsets.all(10),
               margin: const EdgeInsets.symmetric(horizontal: 1),
               child: Center(
-                  child: mails.length > 1
-                      ? IconButton(
-                          icon: const Icon(Icons.delete_outlined,
-                              size: 25, color: Colors.red),
-                          onPressed: () {
-                            removeRecipient(index);
-                          })
-                      : const SizedBox(height: 0)),
+                child: mails.length > 1
+                    ? Column(
+                        children: [
+                          IconButton(
+                              icon: const Icon(Icons.create_rounded,
+                                  size: 25, color: Colors.black),
+                              onPressed: () async {
+                                Map<String, dynamic> result =
+                                    await SystemChannels.platform
+                                        .invokeMethod('Clipboard.getData');
+                                print(result['text'].toString().split('	'));
+                                addDataToMail(
+                                    result['text'].toString().split('	'));
+                              }),
+                          IconButton(
+                              icon: const Icon(Icons.delete_outlined,
+                                  size: 25, color: Colors.red),
+                              onPressed: () {
+                                removeRecipient(index);
+                              }),
+                        ],
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.create_rounded,
+                            size: 25, color: Colors.black),
+                        onPressed: () async {
+                          Map<String, dynamic> result = await SystemChannels
+                              .platform
+                              .invokeMethod('Clipboard.getData');
+                          addDataToMail(result['text'].toString().split('	'));
+                        }),
+              ),
             ))
       ],
     );

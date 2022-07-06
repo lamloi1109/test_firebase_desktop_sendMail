@@ -170,6 +170,19 @@ class _RecipientListState extends State<RecipientList> {
     // print(mails);
   }
 
+  checkForCorrectEmailFormat(arr) {
+    List tempArr = [...arr];
+    for (var i = 0; i < tempArr.length; i++) {
+      bool correctFormat = RegExp(
+              r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+          .hasMatch(tempArr[i]);
+      if (!correctFormat) {
+        tempArr.removeAt(i);
+      }
+    }
+    return tempArr;
+  }
+
   @override
   Widget build(BuildContext context) {
     UserModel user = Provider.of<UserProvider>(context, listen: false).getUser;
@@ -201,6 +214,154 @@ class _RecipientListState extends State<RecipientList> {
         ],
         automaticallyImplyLeading: false,
       ),
+      // body: SingleChildScrollView(
+      //   child: Padding(
+      //     padding: const EdgeInsets.all(20),
+      //     child:
+      //         Column(crossAxisAlignment: CrossAxisAlignment.start, children: <
+      //             Widget>[
+      //       const Text('Import data from excel file',
+      //           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+      //       const SizedBox(height: 10),
+      //       ElevatedButton(
+      //         onPressed: () async {
+      //           FilePickerResult? result =
+      //               await FilePicker.platform.pickFiles();
+      //           if (result == null) return;
+      //           PlatformFile file = result.files.first;
+      //           final extension = p.extension(file.name);
+      //           if (extension != '.xlsx' &&
+      //               extension != '.xls' &&
+      //               extension != '.xlsm' &&
+      //               extension != '.xlsb') {
+      //             showDialog(
+      //               context: context,
+      //               builder: (BuildContext context) {
+      //                 return AlertDialog(
+      //                   title: const Text('Wrong format'),
+      //                   content: const Text('Please choose excel file'),
+      //                   actions: [
+      //                     ElevatedButton(
+      //                       child: const Text('OK'),
+      //                       onPressed: () {
+      //                         return Navigator.of(context).pop();
+      //                       },
+      //                     ),
+      //                   ],
+      //                 );
+      //               },
+      //             );
+      //             return;
+      //           } else {
+      //             var bytes = file.bytes;
+      //             var excel = Excel.decodeBytes(bytes!);
+      //             for (var table in excel.tables.keys) {
+      //               if (excel.tables[table]!.rows[1][0] != 'lanAKAunicornL') {
+      //                 showDialog(
+      //                   context: context,
+      //                   builder: (BuildContext context) {
+      //                     return AlertDialog(
+      //                       title: const Text('Wrong format'),
+      //                       content: const Text(
+      //                           'Please choose excel file with correct format'),
+      //                       actions: [
+      //                         ElevatedButton(
+      //                           child: const Text('OK'),
+      //                           onPressed: () {
+      //                             return Navigator.of(context).pop();
+      //                           },
+      //                         ),
+      //                       ],
+      //                     );
+      //                   },
+      //                 );
+      //                 return;
+      //               } else if (excel.tables[table]!.rows[0].length != 6 ||
+      //                   excel.tables[table]!.rows[0][1] != 'name' ||
+      //                   excel.tables[table]!.rows[0][2] != 'subject' ||
+      //                   excel.tables[table]!.rows[0][3] != 'salutation' ||
+      //                   excel.tables[table]!.rows[0][4] != 'content' ||
+      //                   excel.tables[table]!.rows[0][5] != 'signature') {
+      //                 showDialog(
+      //                   context: context,
+      //                   builder: (BuildContext context) {
+      //                     return AlertDialog(
+      //                       title: const Text('Wrong format'),
+      //                       content: const Text(
+      //                           'Please choose excel file with correct format'),
+      //                       actions: [
+      //                         ElevatedButton(
+      //                           child: const Text('OK'),
+      //                           onPressed: () {
+      //                             return Navigator.of(context).pop();
+      //                           },
+      //                         ),
+      //                       ],
+      //                     );
+      //                   },
+      //                 );
+      //                 return;
+      //               }
+      //               for (var i = 0; i < excel.tables[table]!.rows.length; i++) {
+      //                 if (i == 0) continue;
+      //                 final row = excel.tables[table]!.rows[i];
+      //                 Map<String, dynamic> newMail = {
+      //                   'toEmails': [],
+      //                   'ccEmails': [],
+      //                   'name': row[1],
+      //                   'subject': row[2],
+      //                   'salutation': row[3],
+      //                   'content': row[4],
+      //                   'signature': row[5],
+      //                   'attachments': [],
+      //                 };
+      //                 setState(() {
+      //                   mails.add(newMail);
+      //                 });
+      //               }
+      //             }
+      //           }
+      //         },
+      //         child: const Text('Import data',
+      //             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+      //       ),
+      //       const SizedBox(height: 20),
+      //       Row(
+      //         children: [
+      //           for (var i = 0; i < titles.length; i++)
+      //             Expanded(
+      //               flex: checkForContent(titles[i]),
+      //               child: Container(
+      //                 padding: const EdgeInsets.all(10),
+      //                 decoration: BoxDecoration(
+      //                   color: i == titles.length - 1
+      //                       ? Colors.transparent
+      //                       : Colors.blue,
+      //                 ),
+      //                 margin: const EdgeInsets.symmetric(horizontal: 1),
+      //                 child: Center(
+      //                   child: Text(titles[i],
+      //                       overflow: TextOverflow.ellipsis,
+      //                       style: const TextStyle(
+      //                           fontSize: 18,
+      //                           color: Colors.white,
+      //                           fontWeight: FontWeight.bold)),
+      //                 ),
+      //               ),
+      //             ),
+      //         ],
+      //       ),
+      //       for (var i = 0; i < mails.length; i++)
+      //         InputRow(
+      //             index: i,
+      //             mail: mails[i],
+      //             removeRecipient: removeRecipient,
+      //             mails: mails,
+      //             addNewRecipient: addNewRecipient,
+      //             updateRecipient: updateRecipient)
+      //     ]),
+      //   ),
+      // ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -213,7 +374,7 @@ class _RecipientListState extends State<RecipientList> {
             ElevatedButton(
               onPressed: () async {
                 FilePickerResult? result =
-                    await FilePicker.platform.pickFiles();
+                    await FilePicker.platform.pickFiles(withData: true);
                 if (result == null) return;
                 PlatformFile file = result.files.first;
                 final extension = p.extension(file.name);
@@ -243,32 +404,15 @@ class _RecipientListState extends State<RecipientList> {
                   var bytes = file.bytes;
                   var excel = Excel.decodeBytes(bytes!);
                   for (var table in excel.tables.keys) {
-                    if (excel.tables[table]!.rows[1][0] != 'lanAKAunicornL') {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Wrong format'),
-                            content: const Text(
-                                'Please choose excel file with correct format'),
-                            actions: [
-                              ElevatedButton(
-                                child: const Text('OK'),
-                                onPressed: () {
-                                  return Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                      return;
-                    } else if (excel.tables[table]!.rows[0].length != 6 ||
-                        excel.tables[table]!.rows[0][1] != 'name' ||
-                        excel.tables[table]!.rows[0][2] != 'subject' ||
-                        excel.tables[table]!.rows[0][3] != 'salutation' ||
-                        excel.tables[table]!.rows[0][4] != 'content' ||
-                        excel.tables[table]!.rows[0][5] != 'signature') {
+                    if (excel.tables[table]!.rows[0].length != 8 ||
+                        excel.tables[table]!.rows[0][1]!.value != 'name' ||
+                        excel.tables[table]!.rows[0][2]!.value != 'subject' ||
+                        excel.tables[table]!.rows[0][3]!.value !=
+                            'salutation' ||
+                        excel.tables[table]!.rows[0][4]!.value != 'content' ||
+                        excel.tables[table]!.rows[0][5]!.value != 'signature' ||
+                        excel.tables[table]!.rows[0][6]!.value != 'toEmails' ||
+                        excel.tables[table]!.rows[0][7]!.value != 'ccEmails') {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -292,14 +436,21 @@ class _RecipientListState extends State<RecipientList> {
                     for (var i = 0; i < excel.tables[table]!.rows.length; i++) {
                       if (i == 0) continue;
                       final row = excel.tables[table]!.rows[i];
+
                       Map<String, dynamic> newMail = {
-                        'toEmails': [],
-                        'ccEmails': [],
-                        'name': row[1],
-                        'subject': row[2],
-                        'salutation': row[3],
-                        'content': row[4],
-                        'signature': row[5],
+                        'toEmails': row[6]?.value != null
+                            ? checkForCorrectEmailFormat(
+                                row[6]!.value.split(';'))
+                            : [],
+                        'ccEmails': row[7]?.value != null
+                            ? checkForCorrectEmailFormat(
+                                row[7]!.value.split(';'))
+                            : [],
+                        'name': row[1]!.value,
+                        'subject': row[2]!.value,
+                        'salutation': row[3]!.value,
+                        'content': row[4]!.value,
+                        'signature': row[5]!.value,
                         'attachments': [],
                       };
                       setState(() {
@@ -328,7 +479,6 @@ class _RecipientListState extends State<RecipientList> {
                       margin: const EdgeInsets.symmetric(horizontal: 1),
                       child: Center(
                         child: Text(titles[i],
-                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                                 fontSize: 18,
                                 color: Colors.white,
