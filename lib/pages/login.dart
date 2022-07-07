@@ -98,6 +98,8 @@ class _LoginState extends State<Login> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Login Sucessful')),
           );
+          Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const RecipientList()));
         }
       } else {
         String errMsg = bodyRs['Body']['Fault']['Reason']['Text'].toString();

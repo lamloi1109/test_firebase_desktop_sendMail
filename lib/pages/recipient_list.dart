@@ -1,16 +1,21 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:provider/provider.dart';
 import 'package:test_firebase_desktop/models/user.dart';
+import 'package:test_firebase_desktop/models/zimbraUser.dart';
 import 'package:test_firebase_desktop/provider/userProvider.dart';
+import 'package:test_firebase_desktop/provider/zimbraUserProvider.dart';
 import '../provider/storage.dart';
 import 'package:path/path.dart' as p;
+import 'package:http/http.dart' as http;
 
 import '../widgets/row.dart';
 
@@ -108,6 +113,107 @@ class _RecipientListState extends State<RecipientList> {
     }
   }
 
+  _SendMailPostRequest(user, messages) async {
+    String url = 'https://mail.seacorp.vn/service/soap';
+    Map<String, String> headers = {"Content-type": "application/json"};
+    List e = [
+      {"a": user.email, "t": "f"},
+    ];
+    List attach = [];
+    for (var element in messages) {
+      // ToEmails
+      if (element['toEmails'].length > 0) {
+        for (var element in element['toEmails']) {
+          e.add({"a": element, "t": "t"});
+        }
+      }
+      // ccEmails
+      if (element['ccEmails'].length > 0) {
+        for (var element in element['ccEmails']) {
+          e.add({"a": element, "t": "c"});
+        }
+      }
+      var body = json.encode({
+        "Header": {
+          "context": {
+            "userAgent": {"name": "curl", "version": "7.54.0"},
+            "authTokenControl": {"voidOnExpired": true},
+            "account": {"_content": user.email, "by": "name"},
+            "authToken": user.Athur_TOken,
+            "_jsns": "urn:zimbra"
+          }
+        },
+        "Body": {
+          "SendMsgRequest": {
+            "_jsns": "urn:zimbraMail",
+            "m": {
+              "su": element['subject'],
+              "e": e,
+              "mp": [
+                {"ct": "text/plain", "content": element['content']},
+              ],
+              // "attach": [
+              //   {
+              //     "aid":
+              //         "a783012b-b9dd-4849-90e2-2c89da86dad7:8484b975-759a-4d5d-8bda-2ebe9e918c1c"
+              //   }
+              // ]
+            }
+          }
+        }
+      });
+      Response response =
+          await post(Uri.parse(url), headers: headers, body: body);
+      String bodyRsp = response.body;
+      print(bodyRsp);
+    }
+  }
+
+  _uploadFileRequest(user) async {
+    // var headers = {
+    //   'Content-Type': 'text/html',
+    //   'Content-Disposition': 'attachment; filename="file.txt"',
+    // };
+    // var data = File("C:/Users/B1807572/Documents/file.txt").readAsBytesSync();
+    // var url = Uri.parse('https://mail.seacorp.vn/service/upload?fmt=raw');
+    // var body = json.encode({
+    //   "Header": {
+    //     "context": {
+    //       "userAgent": {"name": "curl", "version": "7.54.0"},
+    //       "authTokenControl": {"voidOnExpired": true},
+    //       "account": {"_content": user.email, "by": "name"},
+    //       "authToken": user.Athur_TOken,
+    //       "_jsns": "urn:zimbra"
+    //     }
+    //   },
+    // });
+    // Response response = await post(url, headers: headers, body: data);
+    // print(toCurl(response.request));
+    // var request = http.MultipartRequest('POST', url);
+
+    // request.files.add(http.MultipartFile.fromBytes('picture',
+    //     File("C:/Users/B1807572/Documents/file.txt").readAsBytesSync(),
+    //     filename: "C:/Users/B1807572/Documents/file.txt".split("/").last));
+    // var res = await request.send();
+    // final respStr = await res.stream.bytesToString();
+    // String bodyRsp = response.body;
+    // print(bodyRsp);
+
+    var headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+
+    var data = json.encode(
+        File("C:/Users/B1807572/Desktop/login_request.json").readAsString());
+
+    var url = Uri.parse('https://mail.seacorp.vn/service/soap');
+    var res = await http.post(url, headers: headers, body: data);
+    // if (res.statusCode != 200) {
+    //   throw Exception('http.post error: statusCode= ${res.statusCode}');
+    // }
+    print(res.body);
+  }
+
   late List mails = [recipient];
   void addNewRecipient() {
     setState(() {
@@ -138,7 +244,7 @@ class _RecipientListState extends State<RecipientList> {
     });
   }
 
-  handleSend(user) {
+  handleSend(user, zimbraUser) {
     bool isProvidedFullInfo = mails.every((element) =>
         element['toEmails'].length > 0 &&
         element['name'].isNotEmpty &&
@@ -164,8 +270,14 @@ class _RecipientListState extends State<RecipientList> {
         },
       );
     } else {
-      sendMail(
-          accesstoken: user.accessToken, email: user.email, messages: mails);
+      if (user.accessToken != "" && zimbraUser.Athur_TOken == "") {
+        print("gmail");
+        sendMail(
+            accesstoken: user.accessToken, email: user.email, messages: mails);
+      } else {
+        print("zimbra");
+        _SendMailPostRequest(zimbraUser, mails);
+      }
     }
     // print(mails);
   }
@@ -186,6 +298,9 @@ class _RecipientListState extends State<RecipientList> {
   @override
   Widget build(BuildContext context) {
     UserModel user = Provider.of<UserProvider>(context, listen: false).getUser;
+    zimbraUserModel zimbraUser =
+        Provider.of<zimbraUserProvider>(context, listen: false).getUser;
+
     List messages = Provider.of<StorageProvider>(context, listen: false).mails;
     return Scaffold(
       appBar: AppBar(
@@ -209,159 +324,12 @@ class _RecipientListState extends State<RecipientList> {
           IconButton(
               icon: const Icon(Icons.send_outlined),
               onPressed: () {
-                handleSend(user);
+                // handleSend(user, zimbraUser);
+                _uploadFileRequest(zimbraUser);
               })
         ],
         automaticallyImplyLeading: false,
       ),
-      // body: SingleChildScrollView(
-      //   child: Padding(
-      //     padding: const EdgeInsets.all(20),
-      //     child:
-      //         Column(crossAxisAlignment: CrossAxisAlignment.start, children: <
-      //             Widget>[
-      //       const Text('Import data from excel file',
-      //           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-      //       const SizedBox(height: 10),
-      //       ElevatedButton(
-      //         onPressed: () async {
-      //           FilePickerResult? result =
-      //               await FilePicker.platform.pickFiles();
-      //           if (result == null) return;
-      //           PlatformFile file = result.files.first;
-      //           final extension = p.extension(file.name);
-      //           if (extension != '.xlsx' &&
-      //               extension != '.xls' &&
-      //               extension != '.xlsm' &&
-      //               extension != '.xlsb') {
-      //             showDialog(
-      //               context: context,
-      //               builder: (BuildContext context) {
-      //                 return AlertDialog(
-      //                   title: const Text('Wrong format'),
-      //                   content: const Text('Please choose excel file'),
-      //                   actions: [
-      //                     ElevatedButton(
-      //                       child: const Text('OK'),
-      //                       onPressed: () {
-      //                         return Navigator.of(context).pop();
-      //                       },
-      //                     ),
-      //                   ],
-      //                 );
-      //               },
-      //             );
-      //             return;
-      //           } else {
-      //             var bytes = file.bytes;
-      //             var excel = Excel.decodeBytes(bytes!);
-      //             for (var table in excel.tables.keys) {
-      //               if (excel.tables[table]!.rows[1][0] != 'lanAKAunicornL') {
-      //                 showDialog(
-      //                   context: context,
-      //                   builder: (BuildContext context) {
-      //                     return AlertDialog(
-      //                       title: const Text('Wrong format'),
-      //                       content: const Text(
-      //                           'Please choose excel file with correct format'),
-      //                       actions: [
-      //                         ElevatedButton(
-      //                           child: const Text('OK'),
-      //                           onPressed: () {
-      //                             return Navigator.of(context).pop();
-      //                           },
-      //                         ),
-      //                       ],
-      //                     );
-      //                   },
-      //                 );
-      //                 return;
-      //               } else if (excel.tables[table]!.rows[0].length != 6 ||
-      //                   excel.tables[table]!.rows[0][1] != 'name' ||
-      //                   excel.tables[table]!.rows[0][2] != 'subject' ||
-      //                   excel.tables[table]!.rows[0][3] != 'salutation' ||
-      //                   excel.tables[table]!.rows[0][4] != 'content' ||
-      //                   excel.tables[table]!.rows[0][5] != 'signature') {
-      //                 showDialog(
-      //                   context: context,
-      //                   builder: (BuildContext context) {
-      //                     return AlertDialog(
-      //                       title: const Text('Wrong format'),
-      //                       content: const Text(
-      //                           'Please choose excel file with correct format'),
-      //                       actions: [
-      //                         ElevatedButton(
-      //                           child: const Text('OK'),
-      //                           onPressed: () {
-      //                             return Navigator.of(context).pop();
-      //                           },
-      //                         ),
-      //                       ],
-      //                     );
-      //                   },
-      //                 );
-      //                 return;
-      //               }
-      //               for (var i = 0; i < excel.tables[table]!.rows.length; i++) {
-      //                 if (i == 0) continue;
-      //                 final row = excel.tables[table]!.rows[i];
-      //                 Map<String, dynamic> newMail = {
-      //                   'toEmails': [],
-      //                   'ccEmails': [],
-      //                   'name': row[1],
-      //                   'subject': row[2],
-      //                   'salutation': row[3],
-      //                   'content': row[4],
-      //                   'signature': row[5],
-      //                   'attachments': [],
-      //                 };
-      //                 setState(() {
-      //                   mails.add(newMail);
-      //                 });
-      //               }
-      //             }
-      //           }
-      //         },
-      //         child: const Text('Import data',
-      //             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-      //       ),
-      //       const SizedBox(height: 20),
-      //       Row(
-      //         children: [
-      //           for (var i = 0; i < titles.length; i++)
-      //             Expanded(
-      //               flex: checkForContent(titles[i]),
-      //               child: Container(
-      //                 padding: const EdgeInsets.all(10),
-      //                 decoration: BoxDecoration(
-      //                   color: i == titles.length - 1
-      //                       ? Colors.transparent
-      //                       : Colors.blue,
-      //                 ),
-      //                 margin: const EdgeInsets.symmetric(horizontal: 1),
-      //                 child: Center(
-      //                   child: Text(titles[i],
-      //                       overflow: TextOverflow.ellipsis,
-      //                       style: const TextStyle(
-      //                           fontSize: 18,
-      //                           color: Colors.white,
-      //                           fontWeight: FontWeight.bold)),
-      //                 ),
-      //               ),
-      //             ),
-      //         ],
-      //       ),
-      //       for (var i = 0; i < mails.length; i++)
-      //         InputRow(
-      //             index: i,
-      //             mail: mails[i],
-      //             removeRecipient: removeRecipient,
-      //             mails: mails,
-      //             addNewRecipient: addNewRecipient,
-      //             updateRecipient: updateRecipient)
-      //     ]),
-      //   ),
-      // ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20),
