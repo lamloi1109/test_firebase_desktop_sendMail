@@ -14,7 +14,6 @@ import 'dart:async';
 import 'package:test_firebase_desktop/pages/recipient_list.dart';
 import 'package:test_firebase_desktop/provider/userProvider.dart';
 import 'package:test_firebase_desktop/provider/zimbraUserProvider.dart';
-
 import '../models/user.dart';
 
 typedef SignInCallback = Future<void> Function();
@@ -125,211 +124,492 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: null,
-        backgroundColor: Colors.white,
-        body: Container(
-          alignment: Alignment.center,
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.7,
-              height: MediaQuery.of(context).size.height * 0.7,
-              child: Container(
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topRight,
-                      end: Alignment.bottomLeft,
-                      stops: [0.4, 0.8],
-                      colors: [
-                        Color.fromARGB(255, 199, 243, 241),
-                        Color.fromARGB(255, 112, 231, 235)
-                      ],
-                    )),
-                child: Row(
-                  children: [
-                    Container(
-                      child: Padding(
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 750.0) {
+      return Scaffold(
+          appBar: null,
+          backgroundColor: Colors.white,
+          body: Container(
+            alignment: Alignment.center,
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.7,
+                height: MediaQuery.of(context).size.height * 0.7,
+                child: Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                        stops: [0.4, 0.8],
+                        colors: [
+                          Color.fromARGB(255, 199, 243, 241),
+                          Color.fromARGB(255, 112, 231, 235)
+                        ],
+                      )),
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    shrinkWrap: true,
+                    children: <Widget>[
+                      // Padding(
+                      //   padding: const EdgeInsets.symmetric(horizontal: 25),
+                      //   child: SvgPicture.asset(
+                      //     'assets/images/bg.svg',
+                      //     width: MediaQuery.of(context).size.width * 0.4,
+                      //     height: MediaQuery.of(context).size.height * 0.4,
+                      //     fit: BoxFit.contain,
+                      //   ),
+                      // ),
+                      SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: Form(
+                              key: _formKey,
+                              child: ListView(
+                                shrinkWrap: true,
+                                children: [
+                                  Container(
+                                    alignment: Alignment.center,
+                                    padding: const EdgeInsets.only(left: 20),
+                                    child: const Text(
+                                      'LOGIN PAGE',
+                                      style: TextStyle(
+                                          fontSize: 35,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 20,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20),
+                                    child: Container(
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.black,
+                                            width: 1,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        ),
+                                        child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 15),
+                                          child: TextFormField(
+                                            validator: (value) {
+                                              var validator = Validator(
+                                                validators: [
+                                                  RequiredValidator(),
+                                                  EmailValidator(),
+                                                ],
+                                              );
+
+                                              return validator.validate(
+                                                context: context,
+                                                label: 'Email',
+                                                value: value,
+                                              );
+                                            },
+                                            onChanged: (value) {
+                                              setState(() {
+                                                email = value;
+                                              });
+                                            },
+                                            keyboardType:
+                                                TextInputType.emailAddress,
+                                            decoration: const InputDecoration(
+                                                labelText: 'Email',
+                                                errorBorder: InputBorder.none,
+                                                border: InputBorder.none),
+                                          ),
+                                        )),
+                                  ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Text(emailError),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20),
+                                    child: Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.black,
+                                            width: 1,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(2),
+                                        ),
+                                        child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 15),
+                                          child: TextFormField(
+                                            validator: (value) {
+                                              var validator = Validator(
+                                                validators: [
+                                                  RequiredValidator(),
+                                                ],
+                                              );
+
+                                              return validator.validate(
+                                                context: context,
+                                                label: 'Password',
+                                                value: value,
+                                              );
+                                            },
+                                            onChanged: (value) {
+                                              setState(() {
+                                                passwd = value;
+                                              });
+                                            },
+                                            obscureText: true,
+                                            decoration: const InputDecoration(
+                                              labelText: 'Password',
+                                              errorBorder: InputBorder.none,
+                                              border: InputBorder.none,
+                                            ),
+                                          ),
+                                        )),
+                                  ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Text(passwdError),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        primary: const Color.fromARGB(
+                                            255, 73, 182, 185),
+                                      ),
+                                      onPressed: () {
+                                        if (_formKey.currentState!.validate()) {
+                                          _AuthPostRequest();
+                                        }
+                                      },
+                                      child: const Text(
+                                        'Login With Zimbra',
+                                        style: TextStyle(fontSize: 20),
+                                        overflow: TextOverflow.ellipsis,
+                                      )),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Row(children: const <Widget>[
+                                    Expanded(
+                                        child: Divider(
+                                      indent: 20.0,
+                                      endIndent: 10.0,
+                                      thickness: 1,
+                                    )),
+                                    Text(
+                                      "Or continue with",
+                                      style: TextStyle(color: Colors.blueGrey),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Expanded(
+                                        child: Divider(
+                                      indent: 20.0,
+                                      endIndent: 10.0,
+                                      thickness: 1,
+                                    )),
+                                  ]),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                          primary: const Color.fromARGB(
+                                              255, 73, 182, 185),
+                                          fixedSize: const Size(100, 50)),
+                                      onPressed: signInWithArgs(
+                                        context,
+                                        GoogleSignInArgs(
+                                          clientId: GOOGLE_CLIENT_ID,
+                                          redirectUri: REDIRECT_URI,
+                                          scope:
+                                              'https://www.googleapis.com/auth/userinfo.email '
+                                              'https://mail.google.com',
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          SvgPicture.asset(
+                                            'assets/images/google.svg',
+                                            fit: BoxFit.cover,
+                                          ),
+                                          Container(
+                                              padding: const EdgeInsets.only(
+                                                  left: 10.0, right: 10.0),
+                                              child: const Text(
+                                                "Google",
+                                                style: TextStyle(fontSize: 20),
+                                                overflow: TextOverflow.ellipsis,
+                                              )),
+                                        ],
+                                      )),
+                                ],
+                              ),
+                            ),
+                          )),
+                    ],
+                  ),
+                )),
+          ));
+    } else {
+      return Scaffold(
+          appBar: null,
+          backgroundColor: Colors.white,
+          body: Container(
+            alignment: Alignment.center,
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.7,
+                height: MediaQuery.of(context).size.height * 0.7,
+                child: Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                        stops: [0.4, 0.8],
+                        colors: [
+                          Color.fromARGB(255, 199, 243, 241),
+                          Color.fromARGB(255, 112, 231, 235)
+                        ],
+                      )),
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    shrinkWrap: true,
+                    children: <Widget>[
+                      Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 25),
                         child: SvgPicture.asset(
                           'assets/images/bg.svg',
-                          width: 300,
-                          height: 300,
-                          fit: BoxFit.cover,
+                          width: MediaQuery.of(context).size.width * 0.4,
+                          height: MediaQuery.of(context).size.height * 0.4,
+                          fit: BoxFit.contain,
                         ),
                       ),
-                    ),
-                    SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.4,
-                        child: Container(
+                      SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.3,
+                          child: Container(
+                            alignment: Alignment.center,
                             child: Form(
-                          key: _formKey,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.only(left: 20),
-                                alignment: Alignment.centerLeft,
-                                child: const Text(
-                                  'LOGIN PAGE',
-                                  style: TextStyle(
-                                      fontSize: 35,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                child: Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: Colors.black,
-                                        width: 1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(5),
+                              key: _formKey,
+                              child: ListView(
+                                shrinkWrap: true,
+                                children: [
+                                  Container(
+                                    alignment: Alignment.center,
+                                    padding: const EdgeInsets.only(left: 20),
+                                    child: const Text(
+                                      'LOGIN PAGE',
+                                      style: TextStyle(
+                                          fontSize: 35,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold),
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(left: 15),
-                                      child: TextFormField(
-                                        validator: (value) {
-                                          var validator = Validator(
-                                            validators: [
-                                              RequiredValidator(),
-                                              EmailValidator(),
-                                            ],
-                                          );
+                                  ),
+                                  const SizedBox(
+                                    height: 20,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20),
+                                    child: Container(
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.black,
+                                            width: 1,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        ),
+                                        child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 15),
+                                          child: TextFormField(
+                                            validator: (value) {
+                                              var validator = Validator(
+                                                validators: [
+                                                  RequiredValidator(),
+                                                  EmailValidator(),
+                                                ],
+                                              );
 
-                                          return validator.validate(
-                                            context: context,
-                                            label: 'Email',
-                                            value: value,
-                                          );
-                                        },
-                                        onChanged: (value) {
-                                          setState(() {
-                                            email = value;
-                                          });
-                                        },
-                                        keyboardType:
-                                            TextInputType.emailAddress,
-                                        decoration: const InputDecoration(
-                                            labelText: 'Email',
-                                            errorBorder: InputBorder.none,
-                                            border: InputBorder.none),
+                                              return validator.validate(
+                                                context: context,
+                                                label: 'Email',
+                                                value: value,
+                                              );
+                                            },
+                                            onChanged: (value) {
+                                              setState(() {
+                                                email = value;
+                                              });
+                                            },
+                                            keyboardType:
+                                                TextInputType.emailAddress,
+                                            decoration: const InputDecoration(
+                                                labelText: 'Email',
+                                                errorBorder: InputBorder.none,
+                                                border: InputBorder.none),
+                                          ),
+                                        )),
+                                  ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Text(emailError),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20),
+                                    child: Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.black,
+                                            width: 1,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(2),
+                                        ),
+                                        child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 15),
+                                          child: TextFormField(
+                                            validator: (value) {
+                                              var validator = Validator(
+                                                validators: [
+                                                  RequiredValidator(),
+                                                ],
+                                              );
+
+                                              return validator.validate(
+                                                context: context,
+                                                label: 'Password',
+                                                value: value,
+                                              );
+                                            },
+                                            onChanged: (value) {
+                                              setState(() {
+                                                passwd = value;
+                                              });
+                                            },
+                                            obscureText: true,
+                                            decoration: const InputDecoration(
+                                              labelText: 'Password',
+                                              errorBorder: InputBorder.none,
+                                              border: InputBorder.none,
+                                            ),
+                                          ),
+                                        )),
+                                  ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Text(passwdError),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        primary: const Color.fromARGB(
+                                            255, 73, 182, 185),
                                       ),
+                                      onPressed: () {
+                                        if (_formKey.currentState!.validate()) {
+                                          _AuthPostRequest();
+                                        }
+                                      },
+                                      child: const Text(
+                                        'Login With Zimbra',
+                                        style: TextStyle(fontSize: 20),
+                                        overflow: TextOverflow.ellipsis,
+                                      )),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Row(children: const <Widget>[
+                                    Expanded(
+                                        child: Divider(
+                                      indent: 20.0,
+                                      endIndent: 10.0,
+                                      thickness: 1,
                                     )),
-                              ),
-                              const SizedBox(
-                                height: 5,
-                              ),
-                              Text(emailError),
-                              const SizedBox(
-                                height: 5,
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                child: Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: Colors.black,
-                                        width: 1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(2),
+                                    Text(
+                                      "Or continue with",
+                                      style: TextStyle(color: Colors.blueGrey),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(left: 15),
-                                      child: TextFormField(
-                                        validator: (value) {
-                                          var validator = Validator(
-                                            validators: [
-                                              RequiredValidator(),
-                                            ],
-                                          );
-
-                                          return validator.validate(
-                                            context: context,
-                                            label: 'Password',
-                                            value: value,
-                                          );
-                                        },
-                                        onChanged: (value) {
-                                          setState(() {
-                                            passwd = value;
-                                          });
-                                        },
-                                        obscureText: true,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Password',
-                                          errorBorder: InputBorder.none,
-                                          border: InputBorder.none,
+                                    Expanded(
+                                        child: Divider(
+                                      indent: 20.0,
+                                      endIndent: 10.0,
+                                      thickness: 1,
+                                    )),
+                                  ]),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                          primary: const Color.fromARGB(
+                                              255, 73, 182, 185),
+                                          fixedSize: const Size(100, 50)),
+                                      onPressed: signInWithArgs(
+                                        context,
+                                        GoogleSignInArgs(
+                                          clientId: GOOGLE_CLIENT_ID,
+                                          redirectUri: REDIRECT_URI,
+                                          scope:
+                                              'https://www.googleapis.com/auth/userinfo.email '
+                                              'https://mail.google.com',
                                         ),
                                       ),
-                                    )),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          SvgPicture.asset(
+                                            'assets/images/google.svg',
+                                            fit: BoxFit.cover,
+                                          ),
+                                          Container(
+                                              padding: const EdgeInsets.only(
+                                                  left: 10.0, right: 10.0),
+                                              child: const Text(
+                                                "Google",
+                                                style: TextStyle(fontSize: 20),
+                                                overflow: TextOverflow.ellipsis,
+                                              )),
+                                        ],
+                                      )),
+                                ],
                               ),
-                              const SizedBox(
-                                height: 5,
-                              ),
-                              Text(passwdError),
-                              const SizedBox(
-                                height: 5,
-                              ),
-                              ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 70, vertical: 20),
-                                    primary:
-                                        const Color.fromARGB(255, 73, 182, 185),
-                                  ),
-                                  onPressed: () {
-                                    if (_formKey.currentState!.validate()) {
-                                      _AuthPostRequest();
-                                    }
-                                  },
-                                  child: const Text(
-                                    'Login With Zimbra',
-                                    style: TextStyle(fontSize: 20),
-                                  )),
-                              const SizedBox(
-                                height: 5,
-                              ),
-                              const Text("OR"),
-                              const SizedBox(
-                                height: 5,
-                              ),
-                              ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 70, vertical: 20),
-                                    primary:
-                                        const Color.fromARGB(255, 73, 182, 185),
-                                  ),
-                                  onPressed: signInWithArgs(
-                                    context,
-                                    GoogleSignInArgs(
-                                      clientId: GOOGLE_CLIENT_ID,
-                                      redirectUri: REDIRECT_URI,
-                                      scope:
-                                          'https://www.googleapis.com/auth/userinfo.email '
-                                          'https://mail.google.com',
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Login With Google',
-                                    style: TextStyle(fontSize: 20),
-                                  )),
-                            ],
-                          ),
-                        ))),
-                  ],
-                ),
-              )),
-        ));
+                            ),
+                          )),
+                    ],
+                  ),
+                )),
+          ));
+    }
   }
 }

@@ -648,12 +648,9 @@ class _InputRowState extends State<InputRow> {
                               icon: const Icon(Icons.create_rounded,
                                   size: 25, color: Colors.black),
                               onPressed: () async {
-                                Map<String, dynamic> result =
-                                    await SystemChannels.platform
-                                        .invokeMethod('Clipboard.getData');
-                                print(result['text'].toString().split('	'));
-                                addDataToMail(
-                                    result['text'].toString().split('	'));
+                                ClipboardData? data =
+                                    await Clipboard.getData('text/plain');
+                                addDataToMail(data!.text.toString().split('	'));
                               }),
                           IconButton(
                               icon: const Icon(Icons.delete_outlined,
