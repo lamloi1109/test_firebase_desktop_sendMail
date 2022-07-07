@@ -50,6 +50,7 @@ class _InputRowState extends State<InputRow> {
     'content': mail['content'],
     'signature': mail['signature'],
     'attachments': mail['attachments'],
+    'attachmentPath': mail['attachmentPath'],
   };
 
   Function removeRecipient;

@@ -54,6 +54,7 @@ dependencies:
   form_validator: ^1.0.2
   form_validation: ^2.1.0+8
   http: ^0.13.4
+  dio: ^4.0.6
 
 dev_dependencies:
   flutter_test:
