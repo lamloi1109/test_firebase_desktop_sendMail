@@ -114,6 +114,7 @@ class _RecipientListState extends State<RecipientList> {
   }
 
   _SendMailPostRequest(user, messages) async {
+    attach.clear();
     String url = 'https://mail.seacorp.vn/service/soap';
     Map<String, String> headers = {"Content-type": "application/json"};
     List e = [
@@ -133,20 +134,24 @@ class _RecipientListState extends State<RecipientList> {
         }
       }
       // attachments
-      if (element['attachments'].length > 0) {
-        for (var element in element['attachments']) {
-          _uploadFileRequest(user, element).then((value) {
-            if (attach.length < element['attachments'].length) {
-              print("@");
-
-              attach.add({"aid": value.substring(1, value.length - 2)});
-            }
-          });
-        }
+      int AttachMentLength = element['attachments'].length;
+      print(AttachMentLength);
+      if (AttachMentLength > 0) {
+        // for (var element in element['attachments']) {
+        //   _uploadFileRequest(user, element).then((value) {
+        //     if (attach.length <= AttachMentLength) {
+        //       attach.add({"aid": value.substring(1, value.length - 2)});
+        //       print(attach);
+        //     }
+        //   });
+        _uploadFileRequest(user, element['attachments']).then((value) {
+          if (attach.length <= AttachMentLength) {
+            attach.add({"aid": value.substring(1, value.length - 2)});
+            print(attach);
+          }
+        });
       }
-      print(element['attachments'].length);
       print(attach.length);
-      print(attach);
       if (element['attachments'].length == attach.length) {
         var body = json.encode({
           "Header": {
@@ -167,20 +172,53 @@ class _RecipientListState extends State<RecipientList> {
                 "mp": [
                   {"ct": "text/plain", "content": element['content']},
                 ],
-                "attach": attach
+                "attach": [
+                  {
+                    "aid":
+                        "a783012b-b9dd-4849-90e2-2c89da86dad7:31ea1431-ffbc-4829-b012-3dac9c667e84",
+                    "aid":
+                        "a783012b-b9dd-4849-90e2-2c89da86dad7:9d828875-2e21-4a50-9545-cb2cbbcd1b30",
+                  }
+                ]
               }
             }
           }
         });
-        print(body);
         // var response = await post(Uri.parse(url), headers: headers, body: body);
         // String bodyRsp = response.body;
         // print(bodyRsp);
         attach.clear();
+        print(attach);
       }
     }
   }
 
+  // Future<String> _uploadFileRequest(user, files) async {
+  //   var url = Uri.parse('https://mail.seacorp.vn/service/upload?fmt=raw');
+  //   http.MultipartRequest request = http.MultipartRequest("POST", url);
+
+  //   var headers = {
+  //     'Content-Type': 'multipart/form-data',
+  //     'Content-Disposition': 'attachment; filename="$fileName"',
+  //     'Cookie': 'ZM_AUTH_TOKEN="${user.Athur_TOken}"'
+  //   };
+  //   request.headers.addAll(headers);
+
+  //   for (var file in files) {
+  //     String fileName = file.split('\\')[file.split('\\').length - 1];
+
+  //     print(file.split('\\')[file.split('\\').length - 1]);
+
+  //     http.MultipartFile multipartFile =
+  //         await http.MultipartFile.fromPath(fileName, "$file");
+  //     request.files.add(multipartFile);
+  //   }
+
+  //   http.StreamedResponse response = await request.send();
+
+  //   final respStr = await response.stream.bytesToString();
+  //   return respStr.split(',')[2];
+  // }
   Future<String> _uploadFileRequest(user, file) async {
     String fileName = file.split('\\')[file.split('\\').length - 1];
     print(file.split('\\')[file.split('\\').length - 1]);

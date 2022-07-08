@@ -515,6 +515,8 @@ class _LoginState extends State<Login> {
                                               });
                                             },
                                             obscureText: true,
+                                            keyboardType:
+                                                TextInputType.visiblePassword,
                                             decoration: const InputDecoration(
                                               labelText: 'Password',
                                               errorBorder: InputBorder.none,
