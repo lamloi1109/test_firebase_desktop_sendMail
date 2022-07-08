@@ -5,6 +5,7 @@ import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:provider/provider.dart';
@@ -137,88 +138,58 @@ class _RecipientListState extends State<RecipientList> {
       int AttachMentLength = element['attachments'].length;
       print(AttachMentLength);
       if (AttachMentLength > 0) {
-        // for (var element in element['attachments']) {
-        //   _uploadFileRequest(user, element).then((value) {
-        //     if (attach.length <= AttachMentLength) {
-        //       attach.add({"aid": value.substring(1, value.length - 2)});
-        //       print(attach);
-        //     }
-        //   });
-        _uploadFileRequest(user, element['attachments']).then((value) {
-          if (attach.length <= AttachMentLength) {
-            attach.add({"aid": value.substring(1, value.length - 2)});
-            print(attach);
-          }
-        });
-      }
-      print(attach.length);
-      if (element['attachments'].length == attach.length) {
-        var body = json.encode({
-          "Header": {
-            "context": {
-              "userAgent": {"name": "curl", "version": "7.54.0"},
-              "authTokenControl": {"voidOnExpired": true},
-              "account": {"_content": user.email, "by": "name"},
-              "authToken": user.Athur_TOken,
-              "_jsns": "urn:zimbra"
+        for (var element in element['attachments']) {
+          _uploadFileRequest(user, element).then((value) {
+            if (attach.length <= AttachMentLength) {
+              attach.add({"aid": value.substring(1, value.length - 2)});
+              print(attach);
             }
-          },
-          "Body": {
-            "SendMsgRequest": {
-              "_jsns": "urn:zimbraMail",
-              "m": {
-                "su": element['subject'],
-                "e": e,
-                "mp": [
-                  {"ct": "text/plain", "content": element['content']},
-                ],
-                "attach": [
-                  {
-                    "aid":
-                        "a783012b-b9dd-4849-90e2-2c89da86dad7:31ea1431-ffbc-4829-b012-3dac9c667e84",
-                    "aid":
-                        "a783012b-b9dd-4849-90e2-2c89da86dad7:9d828875-2e21-4a50-9545-cb2cbbcd1b30",
-                  }
-                ]
+          });
+        }
+        print(attach.length);
+        if (element['attachments'].length == attach.length) {
+          var body = json.encode({
+            "Header": {
+              "context": {
+                "userAgent": {"name": "curl", "version": "7.54.0"},
+                "authTokenControl": {"voidOnExpired": true},
+                "account": {"_content": user.email, "by": "name"},
+                "authToken": user.Athur_TOken,
+                "_jsns": "urn:zimbra"
+              }
+            },
+            "Body": {
+              "SendMsgRequest": {
+                "_jsns": "urn:zimbraMail",
+                "m": {
+                  "su": element['subject'],
+                  "e": e,
+                  "mp": [
+                    {"ct": "text/plain", "content": element['content']},
+                  ],
+                  "attach": [
+                    {
+                      "aid":
+                          "a783012b-b9dd-4849-90e2-2c89da86dad7:31ea1431-ffbc-4829-b012-3dac9c667e84",
+                      "aid":
+                          "a783012b-b9dd-4849-90e2-2c89da86dad7:9d828875-2e21-4a50-9545-cb2cbbcd1b30",
+                    }
+                  ]
+                }
               }
             }
-          }
-        });
-        // var response = await post(Uri.parse(url), headers: headers, body: body);
-        // String bodyRsp = response.body;
-        // print(bodyRsp);
-        attach.clear();
-        print(attach);
+          });
+          var response =
+              await post(Uri.parse(url), headers: headers, body: body);
+          String bodyRsp = response.body;
+          print(bodyRsp);
+          attach.clear();
+          print(attach);
+        }
       }
     }
   }
 
-  // Future<String> _uploadFileRequest(user, files) async {
-  //   var url = Uri.parse('https://mail.seacorp.vn/service/upload?fmt=raw');
-  //   http.MultipartRequest request = http.MultipartRequest("POST", url);
-
-  //   var headers = {
-  //     'Content-Type': 'multipart/form-data',
-  //     'Content-Disposition': 'attachment; filename="$fileName"',
-  //     'Cookie': 'ZM_AUTH_TOKEN="${user.Athur_TOken}"'
-  //   };
-  //   request.headers.addAll(headers);
-
-  //   for (var file in files) {
-  //     String fileName = file.split('\\')[file.split('\\').length - 1];
-
-  //     print(file.split('\\')[file.split('\\').length - 1]);
-
-  //     http.MultipartFile multipartFile =
-  //         await http.MultipartFile.fromPath(fileName, "$file");
-  //     request.files.add(multipartFile);
-  //   }
-
-  //   http.StreamedResponse response = await request.send();
-
-  //   final respStr = await response.stream.bytesToString();
-  //   return respStr.split(',')[2];
-  // }
   Future<String> _uploadFileRequest(user, file) async {
     String fileName = file.split('\\')[file.split('\\').length - 1];
     print(file.split('\\')[file.split('\\').length - 1]);
@@ -251,11 +222,6 @@ class _RecipientListState extends State<RecipientList> {
     });
   }
 
-  // removeRecipient(index) {
-  //   List messages = Provider.of<StorageProvider>(context, listen: false).mails;
-  //   messages.removeAt(index);
-  //   context.read<StorageProvider>().updateMail(messages);
-  // }
   void removeRecipient(int index) {
     if (mails.length == 1) return;
     setState(() {
