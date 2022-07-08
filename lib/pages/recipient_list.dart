@@ -28,7 +28,6 @@ class RecipientList extends StatefulWidget {
 class _RecipientListState extends State<RecipientList> {
   final Set<Uri> files = {};
   List attach = [];
-  String aid = "";
   Map<String, dynamic> recipient = {
     'toEmails': [],
     'ccEmails': [],
@@ -136,18 +135,19 @@ class _RecipientListState extends State<RecipientList> {
       }
       // attachments
       int AttachMentLength = element['attachments'].length;
-      print(AttachMentLength);
+
       if (AttachMentLength > 0) {
         for (var element in element['attachments']) {
-          _uploadFileRequest(user, element).then((value) {
-            if (attach.length <= AttachMentLength) {
-              attach.add({"aid": value.substring(1, value.length - 2)});
-              print(attach);
-            }
-          });
+          await Future.wait([
+            _uploadFileRequest(user, element).then((value) {
+              if (attach.length <= AttachMentLength) {
+                print("Add Item to Attach List");
+                attach.add({"aid": value.substring(1, value.length - 2)});
+              }
+            })
+          ]);
         }
-        print(attach.length);
-        if (element['attachments'].length == attach.length) {
+        if (AttachMentLength == attach.length) {
           var body = json.encode({
             "Header": {
               "context": {
@@ -167,14 +167,7 @@ class _RecipientListState extends State<RecipientList> {
                   "mp": [
                     {"ct": "text/plain", "content": element['content']},
                   ],
-                  "attach": [
-                    {
-                      "aid":
-                          "a783012b-b9dd-4849-90e2-2c89da86dad7:31ea1431-ffbc-4829-b012-3dac9c667e84",
-                      "aid":
-                          "a783012b-b9dd-4849-90e2-2c89da86dad7:9d828875-2e21-4a50-9545-cb2cbbcd1b30",
-                    }
-                  ]
+                  "attach": attach
                 }
               }
             }
@@ -182,20 +175,46 @@ class _RecipientListState extends State<RecipientList> {
           var response =
               await post(Uri.parse(url), headers: headers, body: body);
           String bodyRsp = response.body;
+          print("Dsds");
           print(bodyRsp);
           attach.clear();
-          print(attach);
         }
+      } else {
+        var body = json.encode({
+          "Header": {
+            "context": {
+              "userAgent": {"name": "curl", "version": "7.54.0"},
+              "authTokenControl": {"voidOnExpired": true},
+              "account": {"_content": user.email, "by": "name"},
+              "authToken": user.Athur_TOken,
+              "_jsns": "urn:zimbra"
+            }
+          },
+          "Body": {
+            "SendMsgRequest": {
+              "_jsns": "urn:zimbraMail",
+              "m": {
+                "su": element['subject'],
+                "e": e,
+                "mp": [
+                  {"ct": "text/plain", "content": element['content']},
+                ],
+              }
+            }
+          }
+        });
+        var response = await post(Uri.parse(url), headers: headers, body: body);
+        String bodyRsp = response.body;
+        print(bodyRsp);
       }
     }
   }
 
   Future<String> _uploadFileRequest(user, file) async {
     String fileName = file.split('\\')[file.split('\\').length - 1];
-    print(file.split('\\')[file.split('\\').length - 1]);
     var headers = {
       'Content-Type': 'multipart/form-data',
-      'Content-Disposition': 'attachment; filename="$fileName"',
+      // 'Content-Disposition': 'attachment; filename="$fileName"',
       'Cookie': 'ZM_AUTH_TOKEN="${user.Athur_TOken}"'
     };
 
@@ -207,6 +226,8 @@ class _RecipientListState extends State<RecipientList> {
         await http.MultipartFile.fromPath(fileName, "$file");
 
     request.files.add(multipartFile);
+    request.files.add(multipartFile);
+
     request.headers.addAll(headers);
 
     http.StreamedResponse response = await request.send();
