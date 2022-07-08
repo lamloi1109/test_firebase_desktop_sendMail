@@ -226,7 +226,6 @@ class _RecipientListState extends State<RecipientList> {
         await http.MultipartFile.fromPath(fileName, "$file");
 
     request.files.add(multipartFile);
-    request.files.add(multipartFile);
 
     request.headers.addAll(headers);
 
