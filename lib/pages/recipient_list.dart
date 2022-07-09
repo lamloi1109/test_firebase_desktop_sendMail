@@ -141,8 +141,11 @@ class _RecipientListState extends State<RecipientList> {
           await Future.wait([
             _uploadFileRequest(user, element).then((value) {
               if (attach.length <= AttachMentLength) {
-                print("Add Item to Attach List");
-                attach.add({"aid": value.substring(1, value.length - 2)});
+                if (AttachMentLength == 1) {}
+                // attach.add({"aid": value.substring(1, value.length - 2)});
+                attach.add(value.substring(1, value.length - 2));
+
+                // attachment multi file có cấu trúc như sau: attach: [{"aid":"id file 1,id file 2"}]
               }
             })
           ]);
@@ -167,7 +170,9 @@ class _RecipientListState extends State<RecipientList> {
                   "mp": [
                     {"ct": "text/plain", "content": element['content']},
                   ],
-                  "attach": attach
+                  "attach": [
+                    {"aid": attach.join(',')}
+                  ]
                 }
               }
             }
@@ -175,7 +180,7 @@ class _RecipientListState extends State<RecipientList> {
           var response =
               await post(Uri.parse(url), headers: headers, body: body);
           String bodyRsp = response.body;
-          print("Dsds");
+          print(attach);
           print(bodyRsp);
           attach.clear();
         }
@@ -211,7 +216,8 @@ class _RecipientListState extends State<RecipientList> {
   }
 
   Future<String> _uploadFileRequest(user, file) async {
-    String fileName = file.split('\\')[file.split('\\').length - 1];
+    // String fileName = file.split('\\')[file.split('\\').length - 1];
+    String fileName = file.name;
     var headers = {
       'Content-Type': 'multipart/form-data',
       // 'Content-Disposition': 'attachment; filename="$fileName"',
@@ -222,8 +228,11 @@ class _RecipientListState extends State<RecipientList> {
 
     http.MultipartRequest request = http.MultipartRequest("POST", url);
 
+    // http.MultipartFile multipartFile =
+    //     await http.MultipartFile.fromPath(fileName, "$file");
+
     http.MultipartFile multipartFile =
-        await http.MultipartFile.fromPath(fileName, "$file");
+        await http.MultipartFile.fromPath(fileName, file.path);
 
     request.files.add(multipartFile);
 
@@ -340,7 +349,6 @@ class _RecipientListState extends State<RecipientList> {
               icon: const Icon(Icons.send_outlined),
               onPressed: () {
                 handleSend(user, zimbraUser);
-                // _uploadFileRequest(zimbraUser);
               })
         ],
         automaticallyImplyLeading: false,
@@ -435,6 +443,7 @@ class _RecipientListState extends State<RecipientList> {
                         'content': row[4]!.value,
                         'signature': row[5]!.value,
                         'attachments': [],
+                        'attachmentPath': [],
                       };
                       setState(() {
                         mails.add(newMail);

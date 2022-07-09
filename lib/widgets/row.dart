@@ -197,7 +197,8 @@ class _InputRowState extends State<InputRow> {
         'salutation': _salutation.text,
         'content': _body.text,
         'signature': _signature.text,
-        'attachments': attachmentPath,
+        'attachments': attachments,
+        'attachmentPath': attachmentPath,
       };
 
       updateRecipient(newUpdatedRecipient, index);
@@ -237,6 +238,7 @@ class _InputRowState extends State<InputRow> {
         'content': arr[3],
         'signature': arr[4],
         'attachments': [],
+        'attachmentPath': [],
       };
       setState(() {
         toEmails = newMail['toEmails'];
@@ -288,7 +290,8 @@ class _InputRowState extends State<InputRow> {
                                     'salutation': _salutation.text,
                                     'content': _body.text,
                                     'signature': _signature.text,
-                                    'attachments': attachmentPath,
+                                    'attachments': attachments,
+                                    'attachmentPath': attachmentPath,
                                   };
                                   updateRecipient(newUpdatedRecipient, index);
                                   checkForNewLine('');
@@ -394,7 +397,8 @@ class _InputRowState extends State<InputRow> {
                                     'salutation': _salutation.text,
                                     'content': _body.text,
                                     'signature': _signature.text,
-                                    'attachments': attachmentPath,
+                                    'attachments': attachments,
+                                    'attachmentPath': attachmentPath,
                                   };
                                   updateRecipient(newUpdatedRecipient, index);
                                   checkForNewLine('');
@@ -526,7 +530,8 @@ class _InputRowState extends State<InputRow> {
                                 'salutation': _salutation.text,
                                 'content': _body.text,
                                 'signature': _signature.text,
-                                'attachments': attachmentPath,
+                                'attachments': attachments,
+                                'attachmentPath': attachmentPath,
                               };
                               updateRecipient(newUpdatedRecipient, index);
                             },
