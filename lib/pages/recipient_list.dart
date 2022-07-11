@@ -340,6 +340,8 @@ class _RecipientListState extends State<RecipientList> {
                 context.read<StorageProvider>().updateMail(messages);
                 Provider.of<UserProvider>(context, listen: false).setUser =
                     UserModel("", "");
+                Provider.of<zimbraUserProvider>(context, listen: false)
+                    .setUser = zimbraUserModel("", "", "");
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('SignOut')),
                 );
